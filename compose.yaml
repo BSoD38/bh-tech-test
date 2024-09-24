@@ -2,20 +2,47 @@ services:
   frontend:
     image: node:lts
     volumes:
-      - ./bh-tech-test-frontend:/frontend
+      - ./frontend:/frontend
     ports:
       - "4200:4200"
       - "49153:49153"
     command: bash -c "cd /frontend && npm i -g @angular/cli && npm i && ng serve --host 0.0.0.0 --watch --poll 500"
 
-  backend:
+  fake-probe-service:
+    image: node:lts
+    environment:
+      BACKEND_DB_USERNAME: ${BACKEND_DB_USERNAME:-root}
+      BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
+    volumes:
+      - ./backend/fake-probe-service:/backend
+    command: bash -c "cd /backend && npm i && npm start"
+
+  filtering-service:
+    image: node:lts
+    environment:
+      BACKEND_DB_USERNAME: ${BACKEND_DB_USERNAME:-root}
+      BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
+    volumes:
+      - ./backend/filtering-service:/backend
+    command: bash -c "cd /backend && npm i && npm start"
+
+  modified-data-service:
+    image: node:lts
+    environment:
+      BACKEND_DB_USERNAME: ${BACKEND_DB_USERNAME:-root}
+      BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
+    volumes:
+      - ./backend/modified-data-service:/backend
+    command: bash -c "cd /backend && npm i && npm start"
+
+  users-service:
     image: node:lts
     environment:
       JWT_SECRET: ${JWT_SECRET:-secret}
       BACKEND_DB_USERNAME: ${BACKEND_DB_USERNAME:-root}
       BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
     volumes:
-      - ./bh-tech-test-backend:/backend
+      - ./backend/users-service:/backend
     command: bash -c "cd /backend && npm i && npm start"
 
   db:
