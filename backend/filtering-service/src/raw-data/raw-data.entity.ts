@@ -1,13 +1,13 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class User {
+export class RawData {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true, length: 64 })
-  username: string;
+  @Column({ type: 'smallint' })
+  value: number;
 
-  @Column()
-  password: string;
+  @Column({ type: 'timestamp' })
+  date: Date;
 }

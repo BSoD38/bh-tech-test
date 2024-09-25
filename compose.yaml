@@ -11,29 +11,26 @@ services:
   fake-probe-service:
     image: node:lts
     environment:
-      BACKEND_DB_USERNAME: ${BACKEND_DB_USERNAME:-root}
-      BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
+      RABBITMQ_USER: ${RABBITMQ_USER:-user}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-password}
     volumes:
       - ./backend/fake-probe-service:/backend
-    command: bash -c "cd /backend && npm i && npm start"
+    command: bash -c "cd /backend && npm i && npm run start"
+    ports:
+      - "3001:3000"
 
   filtering-service:
     image: node:lts
     environment:
       BACKEND_DB_USERNAME: ${BACKEND_DB_USERNAME:-root}
       BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
+      RABBITMQ_USER: ${RABBITMQ_USER:-user}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-password}
     volumes:
       - ./backend/filtering-service:/backend
-    command: bash -c "cd /backend && npm i && npm start"
-
-  modified-data-service:
-    image: node:lts
-    environment:
-      BACKEND_DB_USERNAME: ${BACKEND_DB_USERNAME:-root}
-      BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
-    volumes:
-      - ./backend/modified-data-service:/backend
-    command: bash -c "cd /backend && npm i && npm start"
+    command: bash -c "cd /backend && npm i && npm run start"
+    ports:
+      - "3002:3000"
 
   users-service:
     image: node:lts
@@ -43,7 +40,9 @@ services:
       BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
     volumes:
       - ./backend/users-service:/backend
-    command: bash -c "cd /backend && npm i && npm start"
+    command: bash -c "cd /backend && npm i && npm run start"
+    ports:
+      - "3003:3000"
 
   db:
     image: mariadb:lts
