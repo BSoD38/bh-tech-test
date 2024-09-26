@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FilteredDataModule } from './filtered-data/filtered-data.module';
 import { RawDataModule } from './raw-data/raw-data.module';
+import { ModifiedDataModule } from './modified-data/modified-data.module';
 import * as process from 'node:process';
 
 @Module({
@@ -18,6 +19,7 @@ import * as process from 'node:process';
     }),
     FilteredDataModule,
     RawDataModule,
+    ModifiedDataModule,
   ],
   controllers: [],
   providers: [],

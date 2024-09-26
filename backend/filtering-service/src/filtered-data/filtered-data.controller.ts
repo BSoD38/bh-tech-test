@@ -3,6 +3,7 @@ import { FilteredData } from './filtered-data.entity';
 import { RangeParams } from '../dto/range-params.dto';
 import { FilteredDataService } from './filtered-data.service';
 import { ApiOkResponse } from '@nestjs/swagger';
+import { FilteredDataDto } from '../dto/filtered-data.dto';
 
 @Controller('filtered-data')
 export class FilteredDataController {
@@ -11,7 +12,7 @@ export class FilteredDataController {
   @Get()
   @ApiOkResponse({
     description: 'Get all filtered data points in date range',
-    type: FilteredData,
+    type: FilteredDataDto,
     isArray: true,
   })
   getRange(@Query() query: RangeParams): Promise<FilteredData[]> {

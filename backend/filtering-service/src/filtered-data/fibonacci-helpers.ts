@@ -36,7 +36,7 @@ export function nearestValue(
   }
   let index = 0;
   let currValue = 0;
-  while (index < sequence.length || currValue < searchValue) {
+  while (index < sequence.length && currValue < searchValue) {
     currValue = sequence[index];
     if (currValue === searchValue) {
       return searchValue;
