@@ -16,8 +16,6 @@ services:
     volumes:
       - ./backend/fake-probe-service:/backend
     command: bash -c "cd /backend && npm i && npm run start"
-    ports:
-      - "3001:3000"
 
   filtering-service:
     image: node:lts
@@ -31,7 +29,7 @@ services:
       - ./backend/filtering-service:/backend
     command: bash -c "cd /backend && npm i && npm run start"
     ports:
-      - "3002:3000"
+      - "3001:3000"
 
   users-service:
     image: node:lts
@@ -43,7 +41,7 @@ services:
       - ./backend/users-service:/backend
     command: bash -c "cd /backend && npm i && npm run start"
     ports:
-      - "3003:3000"
+      - "3002:3000"
 
   db:
     image: mariadb:lts

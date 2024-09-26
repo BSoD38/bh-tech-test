@@ -4,7 +4,7 @@ import { GraphPageComponent } from './pages/graph-page/graph-page.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/login' },
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'graph', component: GraphPageComponent, canActivate: [AuthGuard] },
 ];

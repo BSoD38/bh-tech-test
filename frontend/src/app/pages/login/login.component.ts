@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
 import {
   FormControl,
@@ -6,11 +6,12 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MatFormField } from '@angular/material/form-field';
+import { MatError, MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -23,11 +24,12 @@ import { Router } from '@angular/router';
     MatFormField,
     MatInput,
     MatButton,
+    MatError,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -38,12 +40,42 @@ export class LoginComponent implements OnInit {
     password: new FormControl('', Validators.required),
   });
 
+  error: WritableSignal<string> = signal('');
+
+  userSub?: Subscription;
+
   ngOnInit() {
-    if (this.authService.isLoggedIn) {
+    this.userSub = this.authService.currentUser.subscribe(user => {
+      if (user) {
+        this.router.navigateByUrl('/graph');
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.userSub) {
+      this.userSub.unsubscribe();
     }
   }
 
-  submit(): void {}
+  async submit(): Promise<void> {
+    if (!this.loginForm.valid) {
+      return;
+    }
+    const values = this.loginForm.value;
+    try {
+      await this.authService.login(values.username!, values.password!);
+    } catch (error) {
+      console.error(error);
+      this.error.set('Login failed');
+    }
+  }
 
-  signup(): void {}
+ async signup(): Promise<void> {
+    if (!this.loginForm.valid) {
+      return;
+    }
+    const values = this.loginForm.value;
+    await this.authService.signup(values.username!, values.password!);
+  }
 }
