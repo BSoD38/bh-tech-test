@@ -1,14 +1,22 @@
-import { Controller, Get, HttpException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { FilteredData } from './filtered-data.entity';
 import { RangeParams } from '../dto/range-params.dto';
 import { FilteredDataService } from './filtered-data.service';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { FilteredDataDto } from '../dto/filtered-data.dto';
+import { AuthGuard } from '../guards/auth.guard';
 
 @Controller('filtered-data')
 export class FilteredDataController {
   constructor(private readonly filteredDataService: FilteredDataService) {}
 
+  @UseGuards(AuthGuard)
   @Get()
   @ApiOkResponse({
     description: 'Get all filtered data points in date range',

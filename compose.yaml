@@ -26,6 +26,7 @@ services:
       BACKEND_DB_PASSWORD: ${BACKEND_DB_PASSWORD:-db_pass}
       RABBITMQ_USER: ${RABBITMQ_USER:-user}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-password}
+      JWT_SECRET: ${JWT_SECRET:-secret}
     volumes:
       - ./backend/filtering-service:/backend
     command: bash -c "cd /backend && npm i && npm run start"

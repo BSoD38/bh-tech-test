@@ -1,9 +1,10 @@
 import {
-  Column, CreateDateColumn,
+  Column,
   Entity,
   JoinColumn,
   OneToOne,
-  PrimaryGeneratedColumn, UpdateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { RawData } from '../raw-data/raw-data.entity';
 import { FilteredData } from '../filtered-data/filtered-data.entity';
@@ -21,9 +22,9 @@ export class ModifiedData {
   @JoinColumn()
   filteredData: FilteredData;
 
-  // Hmmm, I don't really like this, I can't access the User entity from here...
-  @OneToOne('user')
-  @JoinColumn()
+  // I don't really like this, I can't access the User entity from here...
+  // So I can't really create a relation
+  @Column()
   modifiedBy: number;
 
   @Column({ type: 'smallint' })
@@ -31,9 +32,6 @@ export class ModifiedData {
 
   @Column({ type: 'smallint' })
   newValue: number;
-
-  @Column({ type: 'timestamp' })
-  date: Date;
 
   @UpdateDateColumn()
   modifiedAt: Date;

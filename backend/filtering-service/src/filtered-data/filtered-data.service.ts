@@ -30,6 +30,14 @@ export class FilteredDataService {
     return this.filteredDataRepository.save(data);
   }
 
+  findById(id: number): Promise<FilteredData> {
+    return this.filteredDataRepository.findOneBy({ id });
+  }
+
+  findByRawData(data: RawData): Promise<FilteredData> {
+    return this.filteredDataRepository.findOneBy({ rawData: data });
+  }
+
   getInRange(start: Date, end?: Date): Promise<FilteredData[]> {
     const qb = this.filteredDataRepository
       .createQueryBuilder('filteredData')

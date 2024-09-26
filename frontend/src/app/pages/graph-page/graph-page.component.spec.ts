@@ -8,9 +8,8 @@ describe('GraphPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GraphPageComponent]
-    })
-    .compileComponents();
+      imports: [GraphPageComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GraphPageComponent);
     component = fixture.componentInstance;

@@ -5,8 +5,6 @@ import { Component } from '@angular/core';
   standalone: true,
   imports: [],
   templateUrl: './graph-page.component.html',
-  styleUrl: './graph-page.component.scss'
+  styleUrl: './graph-page.component.scss',
 })
-export class GraphPageComponent {
-
-}
+export class GraphPageComponent {}

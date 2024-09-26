@@ -1,58 +1,61 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
-import { User } from "../models/user";
+import { User } from '../models/user';
+import { Router } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
+import { JWTPayload } from '../models/jwt-payload';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   currentUser: WritableSignal<User | undefined> = signal(undefined);
+  tokenExpiration = 0;
+  _token: string | null = null;
 
-  constructor() { }
-
-  async setup(): Promise<void> {
-    const token = localStorage.getItem('token');
-    if (!token || this.currentUser()) {
-      return;
+  set token(token: string | null) {
+    if (token) {
+      const decodedData = jwtDecode<JWTPayload>(token);
+      this.tokenExpiration = decodedData.exp;
+    } else {
+      this.tokenExpiration = 0;
     }
 
-    const response = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({token})
-    });
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    const data = await response.json();
-    if (!data?.user || !data.token) {
-      throw new Error("Refresh response is invalid.");
-    }
-
-    this.currentUser.set(data.user as User);
-    localStorage.setItem("token", data.token);
+    this._token = token;
   }
+
+  get token(): string | null {
+    return this._token;
+  }
+
+  constructor(private router: Router) {
+    this.token = localStorage.getItem('token');
+  }
+
+  // TODO: Implement JWT refresh logic
 
   async login(username: string, password: string): Promise<User> {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({username, password})
+      body: JSON.stringify({ username, password }),
     });
     if (!response.ok) {
       throw new Error(response.statusText);
     }
     const data = await response.json();
     if (!data.user?.username || !data.token) {
-      throw new Error("Login response is invalid.");
+      throw new Error('Login response is invalid.');
     }
 
     this.currentUser.set(data.user as User);
-    localStorage.setItem("token", data.token);
+    localStorage.setItem('token', data.token);
 
     return data.user as User;
   }
 
   logout(): void {
     this.currentUser.set(undefined);
-    localStorage.removeItem("token");
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']);
   }
 
   get isLoggedIn(): boolean {

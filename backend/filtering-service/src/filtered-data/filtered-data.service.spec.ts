@@ -14,7 +14,10 @@ describe('FilteredDataService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FilteredDataService,
-        { provide: getRepositoryToken(FilteredData), useFactory: repositoryMockFactory }
+        {
+          provide: getRepositoryToken(FilteredData),
+          useFactory: repositoryMockFactory,
+        },
       ],
     }).compile();
 
@@ -28,7 +31,7 @@ describe('FilteredDataService', () => {
 
   it('should set the value to the nearest fibonacci sequence number', async () => {
     // So the save method returns the same value as its argument
-    filteredRepositoryMock.save.mockImplementation(value => value);
+    filteredRepositoryMock.save.mockImplementation((value) => value);
 
     const date = new Date();
     const rawData = new RawData();
@@ -42,10 +45,18 @@ describe('FilteredDataService', () => {
     rawData.value = 30;
     const result2 = await service.processRawDataAndSave(rawData);
     expect(result2.value).toEqual(34);
+
+    rawData.value = -7;
+    const result3 = await service.processRawDataAndSave(rawData);
+    expect(result3.value).toEqual(0);
+
+    rawData.value = 44;
+    const result4 = await service.processRawDataAndSave(rawData);
+    expect(result4.value).toEqual(34);
   });
 
   it('should not set the filtered value over the max value', async () => {
-    filteredRepositoryMock.save.mockImplementation(value => value);
+    filteredRepositoryMock.save.mockImplementation((value) => value);
 
     const date = new Date();
     const rawData = new RawData();
@@ -54,5 +65,5 @@ describe('FilteredDataService', () => {
     rawData.id = 42;
     const result = await service.processRawDataAndSave(rawData);
     expect(result.value).toEqual(100);
-  })
+  });
 });

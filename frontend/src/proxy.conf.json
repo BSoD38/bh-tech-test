@@ -1,0 +1,30 @@
+{
+  "/api/auth": {
+    "target": "http://users-service:3000",
+    "secure": false,
+    "pathRewrite": {
+      "^/api": "/users"
+    }
+  },
+  "/api/raw-data": {
+    "target": "http://filtering-service:3000",
+    "secure": false,
+    "pathRewrite": {
+      "^/api": "/filtering"
+    }
+  },
+  "/api/filtered-data": {
+    "target": "http://filtering-service:3000",
+    "secure": false,
+    "pathRewrite": {
+      "^/api": "/filtering"
+    }
+  },
+  "/api/modified-data": {
+    "target": "http://filtering-service:3000",
+    "secure": false,
+    "pathRewrite": {
+      "^/api": "/filtering"
+    }
+  }
+}

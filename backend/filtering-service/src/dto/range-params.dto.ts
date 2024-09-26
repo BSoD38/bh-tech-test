@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RangeParams {
   @ApiProperty()
   start: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   end?: string;
 }

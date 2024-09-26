@@ -32,6 +32,8 @@ export class AuthController {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
+  // TODO: JWT token refresh
+
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     description: 'Sign up response',

@@ -3,8 +3,18 @@
   <mat-card-content>
     <form [formGroup]="loginForm" (ngSubmit)="submit()">
       <mat-form-field>
-        <input type="text" matInput placeholder="Username" formControlName="username">
-        <input type="password" matInput placeholder="Password" formControlName="password">
+        <input
+          type="text"
+          matInput
+          placeholder="Username"
+          formControlName="username"
+        />
+        <input
+          type="password"
+          matInput
+          placeholder="Password"
+          formControlName="password"
+        />
       </mat-form-field>
     </form>
     <div>

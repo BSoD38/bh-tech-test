@@ -9,5 +9,6 @@ import { RawData } from './raw-data.entity';
   controllers: [RawDataController],
   providers: [RawDataService],
   imports: [TypeOrmModule.forFeature([RawData]), FilteredDataModule],
+  exports: [RawDataService],
 })
 export class RawDataModule {}

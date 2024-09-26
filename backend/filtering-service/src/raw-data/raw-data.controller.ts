@@ -1,9 +1,16 @@
-import { Controller, Get, HttpException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { RawDataService } from './raw-data.service';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { RangeParams } from '../dto/range-params.dto';
 import { RawData } from './raw-data.entity';
+import { AuthGuard } from '../guards/auth.guard';
 
 @Controller('raw-data')
 export class RawDataController {
@@ -14,6 +21,7 @@ export class RawDataController {
     await this.rawDataService.handleRawData(data);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   @ApiOkResponse({
     description: 'Get all raw data points in date range',

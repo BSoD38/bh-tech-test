@@ -12,7 +12,7 @@ export class RawDataService {
     private readonly filteredDataService: FilteredDataService,
   ) {}
 
-  async handleRawData({ value, date }: { value: number, date: number }) {
+  async handleRawData({ value, date }: { value: number; date: number }) {
     const rawData = new RawData();
     rawData.value = value;
     rawData.date = new Date(date);
@@ -23,6 +23,10 @@ export class RawDataService {
 
   async createRawData(data: RawData): Promise<RawData> {
     return this.rawDataRepository.save(data);
+  }
+
+  findById(id: number): Promise<RawData> {
+    return this.rawDataRepository.findOneBy({ id });
   }
 
   getInRange(start: Date, end?: Date): Promise<RawData[]> {
