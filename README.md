@@ -24,3 +24,10 @@ docker compose up
 ```
 You can add the `-d` argument to the `docker compose` command if you want the
 containers to run in the background.
+
+## Last words
+
+I didn't have time to finish everything in the way I wanted. Here's a few drawbacks to the current implementation :
+- There is no websocket implementation, instead, data is polled periodically
+- The UI isn't super nice (but it's usable)
+- There aren't many tests in place
