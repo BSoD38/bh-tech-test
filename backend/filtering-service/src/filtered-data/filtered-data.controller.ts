@@ -23,7 +23,7 @@ export class FilteredDataController {
     type: FilteredDataDto,
     isArray: true,
   })
-  getRange(@Query() query: RangeParams): Promise<FilteredData[]> {
+  async getRange(@Query() query: RangeParams): Promise<FilteredDataDto[]> {
     if (!query.start) {
       throw new HttpException('Missing required start date', 400);
     }
@@ -33,12 +33,14 @@ export class FilteredDataController {
     }
     const end = Date.parse(query.end);
     if (end) {
-      return this.filteredDataService.getInRange(
+      const data = await this.filteredDataService.getInRange(
         new Date(start),
         new Date(end),
       );
+      return data.map(d => FilteredDataDto.convertFromEntity(d));
     } else {
-      return this.filteredDataService.getInRange(new Date(start));
+      const data = await this.filteredDataService.getInRange(new Date(start));
+      return data.map(d => FilteredDataDto.convertFromEntity(d));
     }
   }
 }

@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import {
+  Component, effect,
+  OnDestroy,
+  OnInit,
+  signal,
+  WritableSignal,
+} from '@angular/core';
 import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
 import {
   FormControl,
@@ -45,11 +51,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   userSub?: Subscription;
 
   ngOnInit() {
-    this.userSub = this.authService.currentUser.subscribe(user => {
-      if (user) {
-        this.router.navigateByUrl('/graph');
-      }
-    });
+    if (this.authService.currentUser()) {
+      this.router.navigateByUrl('/graph');
+    }
   }
 
   ngOnDestroy() {
@@ -65,17 +69,24 @@ export class LoginComponent implements OnInit, OnDestroy {
     const values = this.loginForm.value;
     try {
       await this.authService.login(values.username!, values.password!);
+      this.router.navigateByUrl('/graph');
     } catch (error) {
       console.error(error);
       this.error.set('Login failed');
     }
   }
 
- async signup(): Promise<void> {
+  async signup(): Promise<void> {
     if (!this.loginForm.valid) {
       return;
     }
     const values = this.loginForm.value;
-    await this.authService.signup(values.username!, values.password!);
+    try {
+      await this.authService.signup(values.username!, values.password!);
+      this.router.navigateByUrl('/graph');
+    } catch (error) {
+      console.error(error);
+      this.error.set('Signup failed');
+    }
   }
 }

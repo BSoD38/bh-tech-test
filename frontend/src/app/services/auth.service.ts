@@ -1,18 +1,34 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { effect, Injectable, signal, WritableSignal } from '@angular/core';
 import { User } from '../models/user';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { JWTPayload } from '../models/jwt-payload';
-import { Subject } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  currentUser = new Subject<User | undefined>();
+  currentUser: WritableSignal<User | undefined> = signal(undefined);
   isLoggedIn = false;
   tokenExpiration = 0;
+
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+  ) {
+    this.token = localStorage.getItem('token');
+    effect(() => {
+      this.isLoggedIn = !!this.currentUser();
+    });
+  }
+
   _token: string | null = null;
+
+  get token(): string | null {
+    return this._token;
+  }
 
   set token(token: string | null) {
     if (token) {
@@ -25,15 +41,22 @@ export class AuthService {
     this._token = token;
   }
 
-  get token(): string | null {
-    return this._token;
-  }
-
-  constructor(private router: Router) {
-    this.token = localStorage.getItem('token');
-    this.currentUser.subscribe(user => {
-      this.isLoggedIn = !!user;
-    });
+  async me() {
+    if (!this.token) {
+      return null;
+    }
+    try {
+      const data = await lastValueFrom(
+        this.http.get<User>('api/users/auth/me'),
+      );
+      if (data) {
+        this.currentUser.set(data);
+      }
+      return data;
+    } catch (e) {
+      console.log(e);
+    }
+    return null;
   }
 
   async login(username: string, password: string): Promise<User> {
@@ -41,8 +64,8 @@ export class AuthService {
       method: 'POST',
       body: JSON.stringify({ username, password }),
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
@@ -53,7 +76,7 @@ export class AuthService {
       throw new Error('Login response is invalid.');
     }
 
-    this.currentUser.next(data.user as User);
+    this.currentUser.set(data.user as User);
     this.token = data.token;
     localStorage.setItem('token', data.token);
 
@@ -67,8 +90,8 @@ export class AuthService {
       method: 'POST',
       body: JSON.stringify({ username, password }),
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
@@ -79,16 +102,36 @@ export class AuthService {
       throw new Error('Signup response is invalid.');
     }
 
-    this.currentUser.next(data.user as User);
+    this.currentUser.set(data.user as User);
     this.token = data.token;
     localStorage.setItem('token', data.token);
 
     return data.user as User;
   }
 
+  async changeUsername(newUsername: string): Promise<User> {
+    const data = await lastValueFrom(
+      this.http.post<User>(
+        'api/users/auth/change-username',
+        { username: newUsername },
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      ),
+    );
+
+    this.currentUser.set(data);
+
+    return data;
+  }
+
   logout(): void {
-    this.currentUser.next(undefined);
+    this.currentUser.set(undefined);
     localStorage.removeItem('token');
+    this.token = null;
     this.router.navigateByUrl('/login');
   }
 }

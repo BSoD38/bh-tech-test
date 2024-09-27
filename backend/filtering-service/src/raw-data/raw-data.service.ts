@@ -21,7 +21,7 @@ export class RawDataService {
     await this.filteredDataService.processRawDataAndSave(newRawData);
   }
 
-  async createRawData(data: RawData): Promise<RawData> {
+  createRawData(data: RawData): Promise<RawData> {
     return this.rawDataRepository.save(data);
   }
 

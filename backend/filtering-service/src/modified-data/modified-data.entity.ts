@@ -3,7 +3,7 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn, RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 import { RawData } from '../raw-data/raw-data.entity';
@@ -18,9 +18,16 @@ export class ModifiedData {
   @JoinColumn()
   rawData: RawData;
 
+  @Column()
+  @RelationId((modifiedData: ModifiedData) => modifiedData.rawData)
+  rawDataId: number;
+
   @OneToOne(() => FilteredData)
   @JoinColumn()
   filteredData: FilteredData;
+
+  @RelationId((modifiedData: ModifiedData) => modifiedData.filteredData)
+  filteredDataId: number;
 
   // I don't really like this, I can't access the User entity from here...
   // So I can't really create a relation
@@ -32,6 +39,12 @@ export class ModifiedData {
 
   @Column({ type: 'smallint' })
   newValue: number;
+
+  @Column({
+    type: 'datetime',
+    precision: 3,
+  })
+  date: Date;
 
   @UpdateDateColumn()
   modifiedAt: Date;

@@ -1,6 +1,6 @@
 import {
   Body,
-  Controller,
+  Controller, Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -17,10 +17,14 @@ import { Request } from 'express';
 import { AuthGuard } from '../guards/auth.guard';
 import { UserUpdateDto } from '../dto/user-update.dto';
 import { UserDto } from '../dto/user.dto';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
@@ -30,6 +34,19 @@ export class AuthController {
   @Post('signin')
   signIn(@Body() signInDto: SignInDto): Promise<AuthDto> {
     return this.authService.signIn(signInDto.username, signInDto.password);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    description: 'Get user from token',
+    type: AuthDto,
+  })
+  @Get('me')
+  async me(@Req() request: Request): Promise<UserDto> {
+    const token = request['user'];
+    const user = await this.usersService.findOne(token.sub);
+    return user ? UserDto.convertFromEntity(user) : null;
   }
 
   // TODO: JWT token refresh

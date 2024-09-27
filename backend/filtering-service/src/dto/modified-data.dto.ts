@@ -6,10 +6,10 @@ export class ModifiedDataDto {
   id: number;
 
   @ApiProperty()
-  rawData: number;
+  rawDataId: number;
 
   @ApiProperty()
-  filteredData: number;
+  filteredDataId: number;
 
   @ApiProperty()
   modifiedBy: number;
@@ -23,10 +23,19 @@ export class ModifiedDataDto {
   @ApiProperty()
   modifiedAt: Date;
 
+  @ApiProperty()
+  date: Date;
+
   static convertFromEntity(modifiedData: ModifiedData): ModifiedDataDto {
-    const { rawData, filteredData, ...dto } = modifiedData;
-    (dto as ModifiedDataDto).rawData = modifiedData.rawData.id;
-    (dto as ModifiedDataDto).filteredData = modifiedData.filteredData.id;
+    const dto = new ModifiedDataDto();
+    dto.id = modifiedData.id;
+    dto.rawDataId = modifiedData.rawDataId;
+    dto.filteredDataId = modifiedData.filteredDataId;
+    dto.modifiedBy = modifiedData.modifiedBy;
+    dto.oldValue = modifiedData.oldValue;
+    dto.newValue = modifiedData.newValue;
+    dto.modifiedAt = modifiedData.modifiedAt;
+    dto.date = modifiedData.date;
     return dto as ModifiedDataDto;
   }
 }

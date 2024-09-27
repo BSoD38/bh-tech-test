@@ -3,7 +3,7 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn, RelationId,
 } from 'typeorm';
 import { RawData } from '../raw-data/raw-data.entity';
 
@@ -16,9 +16,16 @@ export class FilteredData {
   @JoinColumn()
   rawData: RawData;
 
+  @Column()
+  @RelationId((filteredData: FilteredData) => filteredData.rawData)
+  rawDataId: number;
+
   @Column({ type: 'smallint' })
   value: number;
 
-  @Column({ type: 'timestamp' })
+  @Column({
+    type: 'datetime',
+    precision: 3,
+  })
   date: Date;
 }

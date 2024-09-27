@@ -48,7 +48,20 @@ export class ModifiedDataService {
     modifiedData.modifiedBy = userId;
     modifiedData.oldValue = rawData.value;
     modifiedData.newValue = filteredData.value;
+    modifiedData.date = rawData.date;
 
     return this.modifiedDataRepository.save(modifiedData);
+  }
+
+  getInRange(start: Date, end?: Date): Promise<ModifiedData[]> {
+    const qb = this.modifiedDataRepository
+      .createQueryBuilder('modifiedData')
+      .where('modifiedData.date >= :startDate', { startDate: start });
+
+    if (end) {
+      qb.andWhere('modifiedData.date <= :endDate', { endDate: end });
+    }
+
+    return qb.getMany();
   }
 }
