@@ -1,7 +1,7 @@
 # bh-tech-test
 
 This is a project created for BH Technologies' candidate technical test.
-It's a full stack application composed of a NestJS backend, an Angular frontend,
+It's a full stack application composed of a NestJS backend (separated in 3 separated instances), an Angular frontend,
 a MariaDB database and a RabbitMQ message broker.
 
 ## Setup guide
