@@ -47,6 +47,6 @@ export class FilteredDataService {
       qb.andWhere('filteredData.date <= :endDate', { endDate: end });
     }
 
-    return qb.getMany();
+    return qb.orderBy('date').getMany();
   }
 }

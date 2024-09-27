@@ -1,15 +1,20 @@
 import { AuthService } from '../services/auth.service';
-import { HttpHandlerFn, HttpHeaders, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import {
+  HttpHandlerFn,
+  HttpHeaders,
+  HttpInterceptorFn,
+  HttpRequest,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
 
-export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
+export const authInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn,
+) => {
   const auth = inject(AuthService);
   const now = new Date(Date.now());
 
-  if (
-    auth.isLoggedIn &&
-    now.getUTCSeconds() > auth.tokenExpiration
-  ) {
+  if (auth.isLoggedIn && now.getUTCSeconds() > auth.tokenExpiration) {
     auth.logout();
   }
 

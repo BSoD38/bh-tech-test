@@ -56,12 +56,12 @@ export class ModifiedDataService {
   getInRange(start: Date, end?: Date): Promise<ModifiedData[]> {
     const qb = this.modifiedDataRepository
       .createQueryBuilder('modifiedData')
-      .where('modifiedData.date >= :startDate', { startDate: start });
+      .where('modifiedData.modifiedAt >= :startDate', { startDate: start });
 
     if (end) {
-      qb.andWhere('modifiedData.date <= :endDate', { endDate: end });
+      qb.andWhere('modifiedData.modifiedAt <= :endDate', { endDate: end });
     }
 
-    return qb.getMany();
+    return qb.orderBy('date').getMany();
   }
 }

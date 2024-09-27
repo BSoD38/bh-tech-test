@@ -38,6 +38,6 @@ export class RawDataService {
       qb.andWhere('rawData.date <= :endDate', { endDate: end });
     }
 
-    return qb.getMany();
+    return qb.orderBy('date').getMany();
   }
 }

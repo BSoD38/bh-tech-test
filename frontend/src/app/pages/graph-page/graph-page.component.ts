@@ -1,29 +1,36 @@
 import {
   AfterViewInit,
-  Component, ElementRef,
+  Component,
+  ElementRef,
+  inject,
   OnDestroy,
   OnInit,
-  signal, ViewChild,
+  signal,
+  ViewChild,
   WritableSignal,
 } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user';
-import { MatFabButton } from '@angular/material/button';
+import { MatButton, MatFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { FilteringApiService } from '../../services/filtering-api.service';
 import { RawData } from '../../models/raw-data';
 import { FilteredData } from '../../models/filtered-data';
 import { ModifiedData } from '../../models/modified-data';
-import { Chart } from 'chart.js/auto';
-import { MatFormField, MatFormFieldModule, MatHint, MatLabel } from '@angular/material/form-field';
+import { Chart, ChartTypeRegistry, Point } from 'chart.js/auto';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import {
   MatDatepicker,
-  MatDatepickerInputEvent, MatDatepickerModule,
   MatDatepickerToggle,
 } from '@angular/material/datepicker';
-import { MatInput, MatInputModule } from '@angular/material/input';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatInput } from '@angular/material/input';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { DateTimeSelectorComponent } from '../../components/date-time-selector/date-time-selector.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { NameChangeDialogComponent } from '../../components/name-change-dialog/name-change-dialog.component';
+
+type PointWithId = Omit<Point, 'x'> & { x: Date; id: number };
 
 @Component({
   selector: 'app-graph-page',
@@ -37,29 +44,21 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
     MatInput,
     MatHint,
     MatLabel,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDatepickerModule,
-    ReactiveFormsModule,
     MatSlideToggle,
+    DateTimeSelectorComponent,
+    MatButton,
   ],
   templateUrl: './graph-page.component.html',
   styleUrl: './graph-page.component.scss',
 })
 export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
-  startDate: Date | undefined;
-  startTimeControl = new FormControl('00:00', [
-    Validators.required,
-    Validators.pattern(/[0-2][0-9]:[0-5][0-9]/),
-  ]);
+  private _snackBar = inject(MatSnackBar);
+  startDate: Date;
 
   endDate: Date | undefined = undefined;
-  endTimeControl = new FormControl(
-    '',
-    Validators.pattern(/[0-2][0-9]:[0-5][0-9]/),
-  );
 
   lastPoll: Date | undefined;
+  isPolling = false;
 
   showModifiedData: WritableSignal<boolean> = signal(true);
   interval?: ReturnType<typeof setInterval>;
@@ -69,9 +68,11 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
   modifiedData: ModifiedData[] = [];
   mergedModifiedRawData: Map<number, RawData> = new Map<number, RawData>();
 
-  chart?: Chart;
+  chart?: Chart<keyof ChartTypeRegistry, PointWithId[], unknown>;
 
   @ViewChild('chart') chartRef!: ElementRef;
+
+  readonly dialog = inject(MatDialog);
 
   constructor(
     private authService: AuthService,
@@ -79,7 +80,7 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
     // Get start of current day
     const date = new Date(Date.now());
-    date.setUTCHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
     this.startDate = date;
   }
 
@@ -92,18 +93,6 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.startTimeControl.valueChanges.subscribe((value) => {
-      if (!this.startTimeControl.valid) {
-        return;
-      }
-      this.updateStartTime(value ?? '');
-    });
-    this.endTimeControl.valueChanges.subscribe((value) => {
-      if (!this.endTimeControl.valid) {
-        return;
-      }
-      this.updateStartTime(value ?? '');
-    });
     this.startInterval();
   }
 
@@ -112,6 +101,12 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.interval = setInterval(() => {
       this.pollChartData();
     }, 2000);
+    this.isPolling = true;
+  }
+
+  stopInterval(): void {
+    clearInterval(this.interval);
+    this.isPolling = false;
   }
 
   ngAfterViewInit(): void {
@@ -133,19 +128,23 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
       options: {
         onClick: async (event, elements, chart) => {
           if (elements[0]) {
+            if (!this.showModifiedData()) {
+              return;
+            }
             const i = elements[0].index;
             const ds = elements[0].datasetIndex;
             // dataset 1 is raw data
             if (ds !== 1) {
               return;
             }
-            const point = chart.data.datasets[ds].data[i];
+            const point = chart.data.datasets[ds].data[
+              i
+            ] as unknown as PointWithId;
 
-            const rawData = this.rawData.find(
-              (d) => d.id === (point as any).id,
-            );
+            const rawData = this.rawData.find((d) => d.id === point.id);
             if (rawData) {
               await this.filteringService.createModifiedData(rawData);
+              this._snackBar.open('Raw data modified');
             }
           }
         },
@@ -153,66 +152,33 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  updateStartDate(event: MatDatepickerInputEvent<Date>): void {
-    if (!event.value) {
+  updateStartDate(event: Date): void {
+    if (!event) {
       return;
     }
-    this.startDate = event.value;
+    this.startDate = event;
     this.lastPoll = undefined;
     this.rawData = [];
     this.filteredData = [];
     this.modifiedData = [];
     this.mergedModifiedRawData = new Map();
-    if (this.startTimeControl.valid) {
-      this.updateStartTime(this.startTimeControl.value ?? '');
-      return;
-    }
-    clearInterval(this.interval);
+    this.updateChart();
+    this.stopInterval();
     this.startInterval();
   }
 
-  updateStartTime(value: string): void {
-    if (!value) {
+  updateEndDate(event: Date): void {
+    if (!event) {
       return;
     }
-    const [hours, minutes] = value.split(':');
-    this.startDate?.setUTCHours(parseInt(hours), parseInt(minutes), 0, 0);
-    this.lastPoll = undefined;
-    clearInterval(this.interval);
-    this.startInterval();
-  }
-
-  updateEndDate(event: MatDatepickerInputEvent<Date>): void {
-    if (!event.value) {
-      return;
-    }
-    this.endDate = event.value;
+    this.endDate = event;
     this.lastPoll = undefined;
     this.rawData = [];
     this.filteredData = [];
     this.modifiedData = [];
     this.mergedModifiedRawData = new Map();
-    if (!this.endTimeControl.value || !this.endTimeControl.valid) {
-      this.endTimeControl.setValue('00:00');
-      this.updateEndTime(this.endTimeControl.value ?? '');
-      return;
-    }
-    if (this.endTimeControl.valid) {
-      this.updateEndTime(this.endTimeControl.value ?? '');
-      return;
-    }
-    clearInterval(this.interval);
-    this.startInterval();
-  }
-
-  updateEndTime(value: string): void {
-    if (!value) {
-      return;
-    }
-    const [hours, minutes] = value.split(':');
-    this.endDate?.setUTCHours(parseInt(hours), parseInt(minutes), 0, 0);
-    this.lastPoll = undefined;
-    clearInterval(this.interval);
+    this.updateChart();
+    this.stopInterval();
     this.startInterval();
   }
 
@@ -221,46 +187,26 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.updateChart();
   }
 
-  partialUpdateChart(
-    newDataRawData: RawData[],
-    newDataFilteredData: FilteredData[],
-  ): void {
-    for (const filteredData of newDataFilteredData) {
-      this.chart!.data.datasets[0].data.push({
-        x: filteredData.date,
-        y: filteredData.value,
-        id: filteredData.id,
-      } as any);
-    }
-    for (const rawData of newDataRawData) {
-      this.chart!.data.datasets[1].data.push({
-        x: rawData.date,
-        y: rawData.value,
-        id: rawData.id,
-      } as any);
-    }
-  }
-
   updateChart() {
-    const useModified = this.showModifiedData() ? Array.from(this.mergedModifiedRawData.values()) : this.rawData;
-    this.chart!.data.datasets = [
-      {
-        label: 'Filtered Data',
-        data: this.filteredData.map((d) => ({
+    const useModified = this.showModifiedData()
+      ? Array.from(this.mergedModifiedRawData.values())
+      : this.rawData;
+    this.chart!.data.datasets[0].data = this.filteredData.map(
+      (d) =>
+        ({
           x: d.date,
           y: d.value,
           id: d.id,
-        })) as any,
-      },
-      {
-        label: 'Raw Data',
-        data: useModified.map((d) => ({
+        }) as PointWithId,
+    );
+    this.chart!.data.datasets[1].data = useModified.map(
+      (d) =>
+        ({
           x: d.date,
           y: d.value,
           id: d.id,
-        })) as any,
-      },
-    ];
+        }) as PointWithId,
+    );
     this.chart!.update('none');
   }
 
@@ -283,24 +229,16 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  mergePartialModifiedDataIntoRawData(rawData: RawData[], modifiedData: ModifiedData[]): void {
-    for (const rd of rawData) {
-      this.mergedModifiedRawData.set(rd.id, rd);
-    }
-    for (const data of modifiedData) {
-      if (this.mergedModifiedRawData.has(data.rawDataId)) {
-        const clone = structuredClone(
-          this.mergedModifiedRawData.get(data.rawDataId),
-        );
-        clone!.value = data.newValue;
-        this.mergedModifiedRawData.set(data.rawDataId, clone!);
-      }
-    }
-  }
-
   async pollChartData(): Promise<void> {
     // Do not poll for data if the last poll is later than the end date
-    if (this.endDate && (this.lastPoll?.getTime() ?? 0) > (this.endDate?.getTime() ?? 0)) {
+    if (
+      this.endDate &&
+      (this.lastPoll?.getTime() ?? 0) > (this.endDate?.getTime() ?? 0)
+    ) {
+      return;
+    }
+    // Do not poll for data if the start date is in the future
+    if (this.startDate.getTime() > Date.now()) {
       return;
     }
     const startDate = this.lastPoll ?? this.startDate;
@@ -320,23 +258,28 @@ export class GraphPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (modifiedData.length) {
         this.modifiedData = this.modifiedData.concat(modifiedData);
       }
-      if (this.showModifiedData()) {
-        this.mergePartialModifiedDataIntoRawData(rawData, modifiedData);
-        this.updateChart();
-      } else {
-        this.partialUpdateChart(rawData, filteredData);
-      }
     } else {
       [this.rawData, this.filteredData, this.modifiedData] = await Promise.all([
         this.filteringService.getRawDataRange(startDate!, this.endDate),
         this.filteringService.getFilteredDataRange(startDate!, this.endDate),
         this.filteringService.getModifiedDataRange(startDate!, this.endDate),
       ]);
-      if (this.showModifiedData()) {
-        this.mergeModifiedDataIntoRawData();
-      }
-      this.updateChart();
     }
+    this.mergeModifiedDataIntoRawData();
+    this.updateChart();
     this.lastPoll = new Date(Date.now());
+  }
+
+  openUsernameChangeDialog(): void {
+    const dialogRef = this.dialog.open(NameChangeDialogComponent, {
+      data: { username: this.user.username },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        await this.authService.changeUsername(result);
+        this._snackBar.open('Username changed');
+      }
+    });
   }
 }

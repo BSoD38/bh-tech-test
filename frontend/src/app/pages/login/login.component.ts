@@ -1,5 +1,6 @@
 import {
-  Component, effect,
+  Component,
+  effect,
   OnDestroy,
   OnInit,
   signal,

@@ -111,7 +111,7 @@ export class AuthService {
 
   async changeUsername(newUsername: string): Promise<User> {
     const data = await lastValueFrom(
-      this.http.post<User>(
+      this.http.put<User>(
         'api/users/auth/change-username',
         { username: newUsername },
         {

@@ -1,0 +1,17 @@
+<h2 mat-dialog-title>Change username</h2>
+<mat-dialog-content>
+  <mat-form-field>
+    <mat-label>New username</mat-label>
+    <input matInput [formControl]="usernameControl" />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-button
+    [disabled]="!usernameControl.valid"
+    [mat-dialog-close]="usernameControl.value"
+  >
+    Confirm
+  </button>
+</mat-dialog-actions>

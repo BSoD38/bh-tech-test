@@ -6,4 +6,4 @@ export type FilteredData = {
   value: number;
 
   date: Date;
-}
+};

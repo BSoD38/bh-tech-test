@@ -1,0 +1,17 @@
+<div class="block">
+  <mat-form-field>
+    <mat-label>{{ datepickerLabel }}</mat-label>
+    <input
+      matInput
+      [matDatepicker]="picker"
+      (dateChange)="updateDate($event)"
+      [value]="displayDate"
+    />
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>{{ timepickerLabel }}</mat-label>
+    <input matInput [formControl]="timeControl" />
+  </mat-form-field>
+</div>

@@ -12,4 +12,4 @@ export type ModifiedData = {
   newValue: number;
 
   date: Date;
-}
+};

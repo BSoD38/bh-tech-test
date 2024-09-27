@@ -1,56 +1,43 @@
 <div class="container">
   <div class="header">
-    <h2>Hello, {{ user.username }}</h2>
-    <button mat-fab (click)="logoutClicked()" class="logout">
-      <mat-icon>logout</mat-icon>
-    </button>
+    <div class="left">
+      <h2>Hello, {{ user.username }}</h2>
+      <button mat-button (click)="openUsernameChangeDialog()">
+        Change username
+      </button>
+    </div>
+
+    <div class="right">
+      <button mat-fab (click)="logoutClicked()" class="logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
   </div>
   <div class="filters">
     <div class="block">
-
-      <mat-form-field>
-        <mat-label>Start date</mat-label>
-        <input
-          matInput
-          [matDatepicker]="pickerStart"
-          (dateChange)="updateStartDate($event)"
-          [value]="startDate"
-        />
-        <mat-datepicker-toggle matIconSuffix [for]="pickerStart"></mat-datepicker-toggle>
-        <mat-datepicker #pickerStart></mat-datepicker>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Start time</mat-label>
-        <input
-          matInput
-          [formControl]="startTimeControl"
-        />
-      </mat-form-field>
+      <app-date-time-selector
+        [initDate]="startDate"
+        (dateChange)="updateStartDate($event)"
+        [datepickerLabel]="'Start date'"
+        [timepickerLabel]="'Start time'"
+      >
+      </app-date-time-selector>
     </div>
     <div class="block">
-      <mat-form-field>
-        <mat-label>End date</mat-label>
-        <input
-          matInput
-          [matDatepicker]="pickerEnd"
-          (dateChange)="updateEndDate($event)"
-          [value]="endDate"
-        />
-        <mat-datepicker-toggle matIconSuffix [for]="pickerEnd"></mat-datepicker-toggle>
-        <mat-datepicker #pickerEnd></mat-datepicker>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>End time</mat-label>
-        <input
-          matInput
-          [formControl]="endTimeControl"
-        />
-      </mat-form-field>
+      <app-date-time-selector
+        (dateChange)="updateEndDate($event)"
+        [datepickerLabel]="'End date'"
+        [timepickerLabel]="'End time'"
+      >
+      </app-date-time-selector>
     </div>
-    <mat-slide-toggle [checked]="showModifiedData()" (toggleChange)="toggleDisplayModifiedData()">Show modified data</mat-slide-toggle>
+    <mat-slide-toggle
+      [checked]="showModifiedData()"
+      (toggleChange)="toggleDisplayModifiedData()"
+      >Show modified data</mat-slide-toggle
+    >
   </div>
   <div class="chart-container">
     <canvas #chart></canvas>
   </div>
 </div>
-

@@ -4,4 +4,4 @@ export type RawData = {
   value: number;
 
   date: Date;
-}
+};
